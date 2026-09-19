@@ -18,6 +18,7 @@ Large audio datasets are not included in the Git repository. See the root `.giti
 ```text
 music_genre_audio_cnn/
 	train.py                 # GTZAN, ten genres
+	train_fusion.py          # GTZAN late fusion: mel-CNN plus CQT-CNN
 	train_fma.py             # FMA Small, eight genres
 	train_artist20.py        # Artist20, one class per artist
 	requirements.txt
@@ -76,7 +77,7 @@ This produces a consistent four-dimensional input tensor for the CNN while retai
 
 ### CNN architecture
 
-The classifiers share the same general architecture. Three convolutional blocks learn increasingly complex spectrogram patterns. Each block uses a convolution, batch normalization, max pooling, and dropout. Global average pooling then converts the feature maps into a compact representation, followed by a 128-unit dense layer and a softmax classification layer.
+The classifiers share the same general architecture. Three convolutional blocks learn increasingly complex spectrogram patterns. Each block uses a convolution, batch normalization, max pooling, and dropout. Global average pooling then converts the feature maps into a compact representation, followed by a 64-unit dense layer and a softmax classification layer.
 
 The convolutional and dense layers use L2 regularization. Adam optimization trains the network with sparse categorical cross-entropy. Early stopping restores the weights from the best validation-accuracy epoch, while the learning rate is reduced when validation loss stops improving.
 
@@ -98,3 +99,13 @@ The GTZAN and FMA scripts save their results under `results` and `results_fma`, 
 The Artist20 script saves its best model, `results.json`, and the discovered artist order in `results_artist20`. Artist20 evaluation averages predictions across the ten excerpts from each track before calculating track-level accuracy.
 
 Reported accuracy is measured on held-out tracks and depends on the dataset version, available audio files, and training run. It should not be interpreted as a guaranteed threshold.
+
+## Mel and CQT Fusion
+
+`train_fusion.py` trains separate mel and CQT CNNs using the same track split. It averages chunk probabilities to track-level probabilities, tests mel weights from 0.0 to 1.0 on validation tracks, then evaluates the selected weight once on the held-out test tracks.
+
+```text
+python train_fusion.py
+```
+
+Fusion checkpoints and `results.json` are written to `results_fusion`.
