@@ -6,22 +6,13 @@ import argparse
 import json
 from pathlib import Path
 
-import numpy as np
 from sklearn.metrics import classification_report
-from sklearn.model_selection import train_test_split
-import torch
-from torch import nn
 from torch.utils.data import DataLoader
 
-from train import MelChunkDataset, load_mel, set_seed, train_model
+from shared import evaluate_tracks, set_seed, split_tracks
+from train import GenreCNN, MelChunkDataset, load_mel
+from training import train_model
 
-SEED = 42
-SAMPLE_RATE = 22050
-DURATION_SECONDS = 30
-CHUNK_SECONDS = 3
-CHUNKS_PER_TRACK = DURATION_SECONDS // CHUNK_SECONDS
-N_MELS = 128
-TARGET_FRAMES = int(CHUNK_SECONDS * SAMPLE_RATE / 512) + 1
 AUDIO_EXTENSIONS = {".wav", ".mp3", ".flac", ".ogg", ".m4a"}
 
 
@@ -36,21 +27,6 @@ def collect_audio_files(audio_root: Path) -> tuple[list[str], list[int], list[st
                 paths.append(str(path))
                 labels.append(label)
     return paths, labels, artists
-
-
-def evaluate_tracks(model: nn.Module, paths: list[str], labels: list[int], device: torch.device) -> tuple[float, float, list[int]]:
-    model.eval()
-    probabilities = []
-    with torch.no_grad():
-        for path in paths:
-            chunks = torch.from_numpy(load_mel(path)).permute(0, 3, 1, 2).to(device)
-            probabilities.append(torch.softmax(model(chunks), dim=1).mean(dim=0).cpu())
-    probability_tensor = torch.stack(probabilities)
-    label_tensor = torch.tensor(labels, dtype=torch.long)
-    predictions = probability_tensor.argmax(dim=1)
-    loss = -torch.log(probability_tensor[torch.arange(len(labels)), label_tensor].clamp_min(1e-8)).mean()
-    accuracy = (predictions == label_tensor).float().mean()
-    return loss.item(), accuracy.item(), predictions.tolist()
 
 
 def main() -> None:
@@ -79,22 +55,27 @@ def main() -> None:
     if any(labels.count(label) < 7 for label in range(len(artists))):
         raise ValueError("Each artist needs at least seven audio files for train/validation/test splits.")
 
-    train_paths, test_paths, train_labels, test_labels = train_test_split(
-        paths, labels, test_size=0.2, random_state=SEED, stratify=labels
-    )
-    train_paths, validation_paths, train_labels, validation_labels = train_test_split(
-        train_paths, train_labels, test_size=0.2, random_state=SEED, stratify=train_labels
+    train_paths, validation_paths, test_paths, train_labels, validation_labels, test_labels = split_tracks(
+        paths, labels, test_size=0.2, validation_size=0.16
     )
     train = DataLoader(MelChunkDataset(train_paths, train_labels, True), batch_size=args.batch_size, shuffle=True)
-    validation = DataLoader(MelChunkDataset(validation_paths, validation_labels, False), batch_size=args.batch_size)
 
     output_dir = Path(__file__).resolve().parent / "results_artist20"
     output_dir.mkdir(exist_ok=True)
     model_path = output_dir / "artist20_audio_cnn.pt"
     model, _, device, _ = train_model(
-        train, validation, len(artists), args.epochs, model_path, {"artists": artists}
+        GenreCNN(len(artists)),
+        train,
+        lambda current_model, current_device: evaluate_tracks(
+            current_model, validation_paths, validation_labels, load_mel, current_device
+        )[:2],
+        args.epochs,
+        model_path,
+        {"artists": artists},
     )
-    test_loss, test_accuracy, predicted_labels = evaluate_tracks(model, test_paths, test_labels, device)
+    test_loss, test_accuracy, _, predicted_labels = evaluate_tracks(
+        model, test_paths, test_labels, load_mel, device
+    )
     results = {
         "dataset": "Artist20",
         "artists": artists,

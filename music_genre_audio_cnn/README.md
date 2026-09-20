@@ -100,12 +100,14 @@ The Artist20 script saves its best model, `results.json`, and the discovered art
 
 Reported accuracy is measured on held-out tracks and depends on the dataset version, available audio files, and training run. It should not be interpreted as a guaranteed threshold.
 
-## Mel and CQT Fusion
+## Mel, CQT, and Chroma Fusion
 
-`train_fusion.py` trains separate mel and CQT CNNs using the same track split. It averages chunk probabilities to track-level probabilities, tests mel weights from 0.0 to 1.0 on validation tracks, then evaluates the selected weight once on the held-out test tracks.
+`train_fusion.py` is a separate three-representation experiment. It trains independent mel, 96-bin CQT, and 24-bin CQT-chroma CNNs from the same track-level split. Each model is selected by track-level validation metrics after averaging its ten excerpt probabilities.
+
+The script searches all non-negative three-way fusion weights that sum to one in 0.05 increments. It selects the highest validation accuracy, using validation loss to break ties, then evaluates the selected ratio once on held-out test tracks. The test set is never used to select weights.
 
 ```text
 python train_fusion.py
 ```
 
-Fusion checkpoints and `results.json` are written to `results_fusion`.
+Fusion checkpoints and `results.json` are written to `results_fusion_chroma`. Use `--weight-step 0.1` for a faster, coarser ratio search or `--epochs` to override the default 100 epochs.
