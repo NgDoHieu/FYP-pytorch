@@ -1,0 +1,217 @@
+TRAINING.PY AND SHARED.PY EXPLAINED
+=====================================
+
+These two files hold the common code used by the GTZAN, FMA, Artist20,
+fusion, and chroma-rhythm experiments. Each individual training script keeps
+only its own feature extractor, augmentation, CNN architecture, and metadata.
+
+--------------------------------------------------------------------------
+1. training.py
+--------------------------------------------------------------------------
+
+Purpose
+-------
+training.py contains train_model(), the common PyTorch training loop. It is
+model-agnostic: it can train the normal mel/CQT CNN or the chroma-rhythm CNN.
+The caller passes in the model and a validation function.
+
+Inputs to train_model()
+-----------------------
+model
+    The neural network to train, for example GenreCNN or ChromaRhythmCNN.
+
+train_loader
+    A DataLoader containing training excerpts and their class labels.
+
+validation_evaluator
+    A function that receives (model, device) and returns:
+        validation_loss, validation_accuracy
+    Every experiment uses this to validate complete tracks, not individual
+    excerpts. The evaluator averages the ten excerpt probabilities first.
+
+epochs
+    The maximum number of training epochs.
+
+model_path
+    File location where the best model checkpoint is saved.
+
+checkpoint_metadata
+    Extra information saved with the checkpoint, such as genres or the
+    feature representation name.
+
+learning_rate and weight_decay
+    Adam optimizer settings. Weight decay is L2 regularization.
+
+early_stopping_patience
+    How many epochs without a useful validation improvement are allowed before
+    stopping. The default is 10.
+
+Training steps in each epoch
+----------------------------
+1. model.train() enables training behavior such as dropout and batch norm
+   updates.
+2. Each batch of excerpt features and labels moves to CPU or GPU.
+3. The model produces logits, one score for each class.
+4. CrossEntropyLoss compares the logits with the true labels.
+5. loss.backward() calculates gradients.
+6. optimizer.step() updates the model weights.
+7. The loop records average training loss and excerpt-level training accuracy.
+
+Validation and learning-rate scheduling
+---------------------------------------
+After each epoch, validation_evaluator measures complete-track validation
+loss and accuracy. ReduceLROnPlateau lowers the learning rate when validation
+loss stops improving. This lets training make smaller updates after it reaches
+a plateau.
+
+Best-checkpoint rule
+--------------------
+A checkpoint is saved when:
+- validation accuracy is strictly higher than the previous best value.
+
+Early stopping
+--------------
+Each higher validation accuracy resets the counter to 10. If no higher
+validation accuracy occurs for 10 consecutive epochs, training stops. At the
+end, the saved best checkpoint is loaded again, so the returned model is the
+best validation model rather than necessarily the final epoch model.
+
+Returned values
+---------------
+train_model() returns:
+- the restored best model
+- the cross-entropy criterion
+- the selected torch device
+- history: loss, accuracy, val_loss, and val_accuracy for every epoch
+
+--------------------------------------------------------------------------
+2. shared.py
+--------------------------------------------------------------------------
+
+Purpose
+-------
+shared.py contains reusable audio experiment utilities. It makes the scripts
+use the same random seed, track split logic, track-level evaluation method,
+and output format.
+
+Constants
+---------
+SEED = 42
+    Makes splits and random augmentation repeatable.
+
+SAMPLE_RATE = 22050
+    Audio is converted to 22,050 samples per second.
+
+DURATION_SECONDS = 30
+    Each track uses up to 30 seconds.
+
+CHUNK_SECONDS = 3 and CHUNKS_PER_TRACK = 10
+    Each 30-second track becomes ten three-second excerpts.
+
+HOP_LENGTH = 512 and TARGET_FRAMES
+    Defines the approximate number of spectrogram frames in each excerpt.
+
+GTZAN_GENRES
+    The fixed label order for GTZAN. A label index must always match this
+    order during training, testing, and confusion-matrix display.
+
+set_seed()
+----------
+Sets the Python, NumPy, and PyTorch random seeds. If CUDA is available, it
+also seeds all CUDA devices. This improves repeatability, although GPU training
+can still have minor numerical variation.
+
+split_feature_into_chunks()
+---------------------------
+Input: one feature matrix shaped frequency_bins by time_frames.
+
+It extracts ten fixed-length three-second chunks. Short final chunks are padded
+with zeros. It returns channel-last chunks with shape:
+    10 by frequency_bins by TARGET_FRAMES by 1
+
+Mel, CQT, and standalone chroma features use this layout.
+
+collect_labeled_audio()
+-----------------------
+Receives:
+- a root directory
+- ordered folder names used as labels
+- a feature loader, such as load_mel
+
+For each valid audio file it calls the feature loader once to ensure the audio
+can be read. It returns pairs of:
+    audio_file_path, numeric_label
+
+Unreadable files are printed and skipped rather than crashing a long training
+run.
+
+split_tracks()
+--------------
+Splits complete audio paths before features are expanded into excerpts. It uses
+stratified splitting, so every class is represented proportionally in train,
+validation, and test data.
+
+This is important: all ten excerpts from one original track stay in exactly
+one split. Without this, nearly identical excerpts from the same song could be
+in both training and test data, producing unrealistically high results.
+
+channel_last_chunks_to_tensor()
+--------------------------------
+Changes a NumPy array from:
+    batch, frequency, time, channels
+into PyTorch CNN order:
+    batch, channels, frequency, time
+
+track_probabilities()
+---------------------
+Scores a complete track. For each track it:
+1. loads its ten chunks using the chosen feature loader;
+2. gets softmax probabilities from the model for every chunk;
+3. averages the ten probability vectors.
+
+The result is one probability vector per complete audio track.
+
+The optional tensor_converter is needed because most feature loaders produce
+channel-last data, while the chroma-rhythm loader already produces PyTorch's
+channel-first layout.
+
+evaluate_tracks()
+-----------------
+Uses track_probabilities() and calculates:
+- track-level cross-entropy loss;
+- track-level accuracy;
+- true label indices;
+- predicted label indices.
+
+This shared definition ensures that validation and final test metrics mean the
+same thing across all experiments.
+
+save_training_curves()
+----------------------
+Creates the two-panel PNG graph:
+- training and validation accuracy;
+- training and validation loss.
+
+save_confusion_matrix()
+-----------------------
+Creates a labelled confusion-matrix PNG from the true and predicted track
+labels. It helps identify the genres that are commonly confused.
+
+--------------------------------------------------------------------------
+How the files work together
+--------------------------------------------------------------------------
+
+A training script follows this pattern:
+
+1. Set the seed with set_seed().
+2. Find readable tracks with collect_labeled_audio().
+3. Split complete tracks with split_tracks().
+4. Create its representation-specific Dataset and CNN.
+5. Call training.train_model().
+6. Use evaluate_tracks() once on the held-out test tracks.
+7. Save curves and the confusion matrix with shared.py helpers.
+
+The important separation is:
+- training.py: how any supplied PyTorch model learns;
+- shared.py: common audio-data, track-evaluation, and reporting behavior;
+- train_*.py: what audio representation and CNN architecture are being tested.

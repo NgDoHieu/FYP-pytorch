@@ -20,7 +20,7 @@ def train_model(
     *,
     learning_rate: float = 1e-3,
     weight_decay: float = 1e-3,
-    early_stopping_patience: int = 20,
+    early_stopping_patience: int = 10,
 ) -> tuple[nn.Module, nn.Module, torch.device, dict[str, list[float]]]:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
@@ -54,10 +54,7 @@ def train_model(
         scheduler.step(validation_loss)
         print(f"Epoch {epoch + 1}/{epochs}: loss={history['loss'][-1]:.4f}, val_accuracy={validation_accuracy:.4f}")
 
-        improved = validation_accuracy > best_accuracy or (
-            validation_accuracy == best_accuracy and validation_loss < best_loss - 1e-4
-        )
-        if improved:
+        if validation_accuracy > best_accuracy:
             best_accuracy, best_loss, remaining_patience = validation_accuracy, validation_loss, early_stopping_patience
             torch.save({"model_state_dict": model.state_dict(), **checkpoint_metadata}, model_path)
         else:

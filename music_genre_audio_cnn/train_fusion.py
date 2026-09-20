@@ -9,6 +9,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 import librosa
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from sklearn.metrics import classification_report
@@ -33,6 +34,63 @@ from training import train_model
 CQT_BINS = 96
 CHROMA_BINS = 24
 FUSION_WEIGHT_STEP = 0.05
+
+
+def save_fusion_weight_graph(
+    scores: dict[str, dict[str, float]], best_weights: dict[str, float], path: Path
+) -> None:
+    """Save a ternary-style plot of validation accuracy for every fusion mix."""
+    weight_sets = []
+    for key, score in scores.items():
+        weights = {
+            name: float(value)
+            for name, value in (item.split("=") for item in key.split(", "))
+        }
+        weight_sets.append((weights, score["accuracy"]))
+
+    mel_weights = np.array([weights["mel"] for weights, _ in weight_sets])
+    chroma_weights = np.array([weights["chroma"] for weights, _ in weight_sets])
+    accuracies = np.array([accuracy for _, accuracy in weight_sets])
+    triangle_height = np.sqrt(3.0) / 2.0
+    x_coordinates = chroma_weights + 0.5 * mel_weights
+    y_coordinates = triangle_height * mel_weights
+    best_x = best_weights["chroma"] + 0.5 * best_weights["mel"]
+    best_y = triangle_height * best_weights["mel"]
+
+    figure, axis = plt.subplots(figsize=(8, 7))
+    axis.plot([0, 1, 0.5, 0], [0, 0, triangle_height, 0], color="black", linewidth=1)
+    points = axis.scatter(x_coordinates, y_coordinates, c=accuracies, cmap="viridis", s=70, edgecolors="white")
+    axis.scatter(best_x, best_y, s=190, facecolors="none", edgecolors="crimson", linewidths=2.5, label="Selected mix")
+    axis.set_title("Fusion Validation Accuracy by Representation Weight", pad=34)
+    axis.text(0, -0.06, "CQT: 100%", ha="center")
+    axis.text(1, -0.06, "Chroma: 100%", ha="center")
+    axis.text(0.5, triangle_height + 0.045, "Mel: 100%", ha="center")
+    axis.set_aspect("equal")
+    axis.set_axis_off()
+    axis.legend(loc="upper right")
+    colorbar = figure.colorbar(points, ax=axis, shrink=0.8)
+    colorbar.set_label("Validation accuracy")
+    figure.tight_layout()
+    figure.savefig(path, dpi=180, bbox_inches="tight")
+    plt.close(figure)
+
+
+def save_fusion_training_curves(histories: dict[str, dict[str, list[float]]], path: Path) -> None:
+    figure, axes = plt.subplots(2, 1, figsize=(8, 7), sharex=True)
+    for name, history in histories.items():
+        axes[0].plot(history["accuracy"], label=f"{name} train")
+        axes[0].plot(history["val_accuracy"], linestyle="--", label=f"{name} validation")
+        axes[1].plot(history["loss"], label=f"{name} train")
+        axes[1].plot(history["val_loss"], linestyle="--", label=f"{name} validation")
+    axes[0].set_ylabel("Accuracy")
+    axes[0].set_title("Fusion Branch Training Curves")
+    axes[0].legend(ncol=2)
+    axes[1].set_xlabel("Epoch")
+    axes[1].set_ylabel("Loss")
+    axes[1].legend(ncol=2)
+    figure.tight_layout()
+    figure.savefig(path, dpi=180)
+    plt.close(figure)
 
 
 def load_cqt(path: str) -> np.ndarray:
@@ -182,12 +240,14 @@ def main() -> None:
 
     feature_loaders = {"mel": load_mel, "cqt": load_cqt, "chroma": load_chroma}
     models: dict[str, torch.nn.Module] = {}
+    histories: dict[str, dict[str, list[float]]] = {}
     device: torch.device | None = None
     for name, feature_loader in feature_loaders.items():
-        models[name], _, device, _ = train_representation(name, feature_loader)
+        models[name], _, device, histories[name] = train_representation(name, feature_loader)
 
     if device is None:
         raise RuntimeError("No fusion models were trained.")
+    save_fusion_training_curves(histories, output_dir / "fusion_training_curves.png")
 
     validation_probabilities = {
         name: track_probabilities(models[name], validation_paths, feature_loader, device)
@@ -196,6 +256,7 @@ def main() -> None:
     weights, validation_accuracy, validation_loss, validation_scores = select_fusion_weights(
         validation_probabilities, validation_labels, args.weight_step
     )
+    save_fusion_weight_graph(validation_scores, weights, output_dir / "fusion_validation_accuracy.png")
     test_probabilities_by_representation = {
         name: track_probabilities(models[name], test_paths, feature_loader, device)
         for name, feature_loader in feature_loaders.items()
@@ -228,11 +289,13 @@ def main() -> None:
         "model_files": {
             name: str(output_dir / f"gtzan_{name}_cnn.pt") for name in feature_loaders
         },
+        "training_curves": str(output_dir / "fusion_training_curves.png"),
     }
     with (output_dir / "results.json").open("w", encoding="utf-8") as file:
         json.dump(results, file, indent=2)
     print("Best validation fusion: " + ", ".join(f"{name}={weight:.2f}" for name, weight in weights.items()))
     print(f"Fusion test accuracy: {test_accuracy:.4f}")
+    print(f"Training curves saved to: {output_dir / 'fusion_training_curves.png'}")
 
 
 if __name__ == "__main__":
