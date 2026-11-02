@@ -1,0 +1,43 @@
+{
+  "dataset": "GTZAN features_3_sec.csv, averaged to one row per track",
+  "track_count": 1000,
+  "feature_count": 57,
+  "seed": 42,
+  "pca_2d_explained_variance_ratio": [
+    0.26271254984773473,
+    0.1599130405030382
+  ],
+  "pca_2d_total_explained_variance": 0.42262559035077296,
+  "tsne": {
+    "perplexity": 30.0,
+    "trustworthiness_10_neighbors": 0.9654348400203149
+  },
+  "cluster_evaluation_space": "57 standardized mean track features, not 2D plots",
+  "cluster_metrics": [
+    {
+      "method": "KMeans on standardized track features",
+      "silhouette": 0.11191695401214151,
+      "davies_bouldin": 2.0714462565095713,
+      "adjusted_rand_index": 0.20358748020177528,
+      "normalized_mutual_information": 0.3550358136962657
+    },
+    {
+      "method": "Diagonal GMM on standardized track features",
+      "silhouette": 0.08009786494504811,
+      "davies_bouldin": 2.276746272730397,
+      "adjusted_rand_index": 0.2070598804827522,
+      "normalized_mutual_information": 0.35891592574625186
+    }
+  ],
+  "metric_notes": {
+    "silhouette": "Higher is better; measures separation without using genre labels.",
+    "davies_bouldin": "Lower is better; measures within-cluster spread relative to separation.",
+    "adjusted_rand_index": "Higher is better; compares cluster assignments with genre labels.",
+    "normalized_mutual_information": "Higher is better; compares cluster assignments with genre labels."
+  },
+  "plots": [
+    "pca_tracks.png",
+    "tsne_tracks.png"
+  ],
+  "assignments_csv": "track_assignments.csv"
+}

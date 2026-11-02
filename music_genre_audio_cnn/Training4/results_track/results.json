@@ -1,0 +1,154 @@
+{
+  "split_mode": "track",
+  "seed": 42,
+  "features_count": 57,
+  "samples": {
+    "train": 7480,
+    "val": 1010,
+    "test": 1500
+  },
+  "results": {
+    "deep_audio_mlp_accuracy": 0.734,
+    "xgboost_accuracy": 0.7186666666666667,
+    "ensemble_accuracy": 0.7606666666666667,
+    "track_count": 150,
+    "track_voted_accuracy": 0.82
+  },
+  "classification_report_ensemble": {
+    "blues": {
+      "precision": 0.7345679012345679,
+      "recall": 0.7933333333333333,
+      "f1-score": 0.7628205128205128,
+      "support": 150.0
+    },
+    "classical": {
+      "precision": 0.9030303030303031,
+      "recall": 0.9933333333333333,
+      "f1-score": 0.946031746031746,
+      "support": 150.0
+    },
+    "country": {
+      "precision": 0.7409638554216867,
+      "recall": 0.82,
+      "f1-score": 0.7784810126582279,
+      "support": 150.0
+    },
+    "disco": {
+      "precision": 0.7401574803149606,
+      "recall": 0.6266666666666667,
+      "f1-score": 0.6787003610108303,
+      "support": 150.0
+    },
+    "hiphop": {
+      "precision": 0.6954022988505747,
+      "recall": 0.8066666666666666,
+      "f1-score": 0.7469135802469136,
+      "support": 150.0
+    },
+    "jazz": {
+      "precision": 0.9290780141843972,
+      "recall": 0.8733333333333333,
+      "f1-score": 0.9003436426116839,
+      "support": 150.0
+    },
+    "metal": {
+      "precision": 0.9411764705882353,
+      "recall": 0.64,
+      "f1-score": 0.7619047619047619,
+      "support": 150.0
+    },
+    "pop": {
+      "precision": 0.7013888888888888,
+      "recall": 0.6733333333333333,
+      "f1-score": 0.6870748299319728,
+      "support": 150.0
+    },
+    "reggae": {
+      "precision": 0.6526946107784432,
+      "recall": 0.7266666666666667,
+      "f1-score": 0.6876971608832808,
+      "support": 150.0
+    },
+    "rock": {
+      "precision": 0.6447368421052632,
+      "recall": 0.6533333333333333,
+      "f1-score": 0.6490066225165563,
+      "support": 150.0
+    },
+    "accuracy": 0.7606666666666667,
+    "macro avg": {
+      "precision": 0.768319666539732,
+      "recall": 0.7606666666666666,
+      "f1-score": 0.7598974230616486,
+      "support": 1500.0
+    },
+    "weighted avg": {
+      "precision": 0.768319666539732,
+      "recall": 0.7606666666666667,
+      "f1-score": 0.7598974230616486,
+      "support": 1500.0
+    }
+  },
+  "top_features": [
+    {
+      "feature": "perceptr_var",
+      "importance": 0.06455549597740173
+    },
+    {
+      "feature": "spectral_bandwidth_mean",
+      "importance": 0.04989773407578468
+    },
+    {
+      "feature": "rolloff_mean",
+      "importance": 0.04032128304243088
+    },
+    {
+      "feature": "chroma_stft_var",
+      "importance": 0.0401499904692173
+    },
+    {
+      "feature": "chroma_stft_mean",
+      "importance": 0.034274809062480927
+    },
+    {
+      "feature": "rms_var",
+      "importance": 0.030405934900045395
+    },
+    {
+      "feature": "rolloff_var",
+      "importance": 0.02867942303419113
+    },
+    {
+      "feature": "mfcc1_var",
+      "importance": 0.027327517047524452
+    },
+    {
+      "feature": "spectral_centroid_var",
+      "importance": 0.02646569348871708
+    },
+    {
+      "feature": "mfcc4_mean",
+      "importance": 0.025037065148353577
+    },
+    {
+      "feature": "mfcc12_mean",
+      "importance": 0.023999791592359543
+    },
+    {
+      "feature": "mfcc6_mean",
+      "importance": 0.02266998589038849
+    },
+    {
+      "feature": "harmony_var",
+      "importance": 0.02221028320491314
+    },
+    {
+      "feature": "mfcc1_mean",
+      "importance": 0.021870281547307968
+    },
+    {
+      "feature": "mfcc9_mean",
+      "importance": 0.020877335220575333
+    }
+  ]
+}

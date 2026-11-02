@@ -1,5 +1,12 @@
-numpy
-librosa
-matplotlib
-scikit-learn
-torch
+# Training4 Core Dependencies (DeepAudioMLP & XGBoost Tabular Pipeline)
+numpy>=2.0.0
+pandas>=2.0.0
+scikit-learn>=1.4.0
+torch>=2.0.0
+xgboost>=2.0.0
+matplotlib>=3.8.0
+seaborn>=0.13.0
+
+# Audio Utilities (Optional / Audio Feature Processing)
+librosa>=0.10.0
+

@@ -1,99 +1,222 @@
 {
   "dataset": "GTZAN WAV audio",
-  "fusion": "Fixed track-level late fusion of saved mel, CQT, and chroma CNNs.",
+  "fusion": "Fixed track-level late fusion of mel, CQT, and chroma CRNNs across random seeds.",
   "fusion_weights": {
     "mel": 0.6,
     "cqt": 0.3,
     "chroma": 0.1
   },
-  "evaluation": "Held-out track metrics after averaging probabilities from ten three-second excerpts.",
-  "test_accuracy": 0.8266666531562805,
-  "test_loss": 0.6367557644844055,
+  "checkpoint_min_delta": 0.013333333333333334,
+  "seeds": [
+    1282675903,
+    927726535,
+    3901670817,
+    3388071176,
+    2835127723,
+    3779533500,
+    399678050,
+    2690456768,
+    1139090655,
+    140022403,
+    3109145244,
+    3077755385,
+    3591420724,
+    1547273554,
+    485780280,
+    1812787416,
+    3496855107,
+    3092999295,
+    166934300,
+    2014917443
+  ],
+  "seed_count": 20,
+  "evaluation": "Held-out track metrics after averaging probabilities from ten three-second excerpts for each seed.",
+  "mean_test_accuracy": 0.8333333283662796,
+  "std_test_accuracy": 0.031902632219799686,
+  "mean_test_loss": 0.6166654229164124,
+  "std_test_loss": 0.0668728826781707,
   "classification_report": {
     "blues": {
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1-score": 1.0,
-      "support": 15.0
+      "precision": 0.9068100358422939,
+      "recall": 0.8433333333333334,
+      "f1-score": 0.8739205526770294,
+      "support": 300.0
     },
     "classical": {
-      "precision": 0.8823529411764706,
+      "precision": 0.8797653958944281,
       "recall": 1.0,
-      "f1-score": 0.9375,
-      "support": 15.0
+      "f1-score": 0.9360374414976599,
+      "support": 300.0
     },
     "country": {
-      "precision": 0.75,
-      "recall": 0.8,
-      "f1-score": 0.7741935483870968,
-      "support": 15.0
+      "precision": 0.7564935064935064,
+      "recall": 0.7766666666666666,
+      "f1-score": 0.7664473684210527,
+      "support": 300.0
     },
     "disco": {
-      "precision": 1.0,
-      "recall": 0.4666666666666667,
-      "f1-score": 0.6363636363636364,
-      "support": 15.0
+      "precision": 0.7956656346749226,
+      "recall": 0.8566666666666667,
+      "f1-score": 0.8250401284109149,
+      "support": 300.0
     },
     "hiphop": {
-      "precision": 0.7142857142857143,
-      "recall": 1.0,
-      "f1-score": 0.8333333333333334,
-      "support": 15.0
+      "precision": 0.838006230529595,
+      "recall": 0.8966666666666666,
+      "f1-score": 0.8663446054750402,
+      "support": 300.0
     },
     "jazz": {
-      "precision": 1.0,
-      "recall": 0.8666666666666667,
-      "f1-score": 0.9285714285714286,
-      "support": 15.0
+      "precision": 0.8478260869565217,
+      "recall": 0.91,
+      "f1-score": 0.8778135048231511,
+      "support": 300.0
     },
     "metal": {
-      "precision": 0.8235294117647058,
-      "recall": 0.9333333333333333,
-      "f1-score": 0.875,
-      "support": 15.0
+      "precision": 0.9131832797427653,
+      "recall": 0.9466666666666667,
+      "f1-score": 0.9296235679214403,
+      "support": 300.0
     },
     "pop": {
-      "precision": 0.7142857142857143,
-      "recall": 0.6666666666666666,
-      "f1-score": 0.6896551724137931,
-      "support": 15.0
+      "precision": 0.8653846153846154,
+      "recall": 0.75,
+      "f1-score": 0.8035714285714286,
+      "support": 300.0
     },
     "reggae": {
-      "precision": 0.9230769230769231,
-      "recall": 0.8,
-      "f1-score": 0.8571428571428571,
-      "support": 15.0
+      "precision": 0.891213389121339,
+      "recall": 0.71,
+      "f1-score": 0.7903525046382189,
+      "support": 300.0
     },
     "rock": {
-      "precision": 0.6470588235294118,
-      "recall": 0.7333333333333333,
-      "f1-score": 0.6875,
-      "support": 15.0
+      "precision": 0.652027027027027,
+      "recall": 0.6433333333333333,
+      "f1-score": 0.6476510067114094,
+      "support": 300.0
     },
-    "accuracy": 0.8266666666666667,
+    "accuracy": 0.8333333333333334,
     "macro avg": {
-      "precision": 0.8454589528118939,
-      "recall": 0.8266666666666665,
-      "f1-score": 0.8219259976212145,
-      "support": 150.0
+      "precision": 0.8346375201667013,
+      "recall": 0.8333333333333334,
+      "f1-score": 0.8316802109147344,
+      "support": 3000.0
     },
     "weighted avg": {
-      "precision": 0.8454589528118939,
-      "recall": 0.8266666666666667,
-      "f1-score": 0.8219259976212147,
-      "support": 150.0
+      "precision": 0.8346375201667013,
+      "recall": 0.8333333333333334,
+      "f1-score": 0.8316802109147345,
+      "support": 3000.0
     }
   },
   "track_split": {
     "train": 699,
     "validation": 150,
-    "test": 150
+    "test_per_seed": 150
   },
-  "model_files": {
-    "mel": "C:\\Users\\tantr\\Downloads\\FYP-main\\FYP-main\\music_genre_audio_cnn\\results_fusion_chroma\\gtzan_mel_cnn.pt",
-    "cqt": "C:\\Users\\tantr\\Downloads\\FYP-main\\FYP-main\\music_genre_audio_cnn\\results_fusion_chroma\\gtzan_cqt_cnn.pt",
-    "chroma": "C:\\Users\\tantr\\Downloads\\FYP-main\\FYP-main\\music_genre_audio_cnn\\results_fusion_chroma\\gtzan_chroma_cnn.pt"
-  },
-  "confusion_matrix": "C:\\Users\\tantr\\Downloads\\FYP-main\\FYP-main\\music_genre_audio_cnn\\final_fusion_result\\confusion_matrix.png",
-  "training_curves": "C:\\Users\\tantr\\Downloads\\FYP-main\\FYP-main\\music_genre_audio_cnn\\results_fusion_chroma\\fusion_training_curves.png"
+  "runs": [
+    {
+      "seed": 1282675903,
+      "test_accuracy": 0.8333333134651184,
+      "test_loss": 0.6336501240730286
+    },
+    {
+      "seed": 927726535,
+      "test_accuracy": 0.8799999952316284,
+      "test_loss": 0.5241662859916687
+    },
+    {
+      "seed": 3901670817,
+      "test_accuracy": 0.800000011920929,
+      "test_loss": 0.6590684056282043
+    },
+    {
+      "seed": 3388071176,
+      "test_accuracy": 0.846666693687439,
+      "test_loss": 0.5526136159896851
+    },
+    {
+      "seed": 2835127723,
+      "test_accuracy": 0.8333333134651184,
+      "test_loss": 0.6381762027740479
+    },
+    {
+      "seed": 3779533500,
+      "test_accuracy": 0.8533333539962769,
+      "test_loss": 0.5424382090568542
+    },
+    {
+      "seed": 399678050,
+      "test_accuracy": 0.8199999928474426,
+      "test_loss": 0.6157022714614868
+    },
+    {
+      "seed": 2690456768,
+      "test_accuracy": 0.8399999737739563,
+      "test_loss": 0.541446328163147
+    },
+    {
+      "seed": 1139090655,
+      "test_accuracy": 0.8666666746139526,
+      "test_loss": 0.5691953897476196
+    },
+    {
+      "seed": 140022403,
+      "test_accuracy": 0.7666666507720947,
+      "test_loss": 0.7289984822273254
+    },
+    {
+      "seed": 3109145244,
+      "test_accuracy": 0.8399999737739563,
+      "test_loss": 0.5885270833969116
+    },
+    {
+      "seed": 3077755385,
+      "test_accuracy": 0.8333333134651184,
+      "test_loss": 0.6542415618896484
+    },
+    {
+      "seed": 3591420724,
+      "test_accuracy": 0.8733333349227905,
+      "test_loss": 0.5852364897727966
+    },
+    {
+      "seed": 1547273554,
+      "test_accuracy": 0.8666666746139526,
+      "test_loss": 0.6044052243232727
+    },
+    {
+      "seed": 485780280,
+      "test_accuracy": 0.8266666531562805,
+      "test_loss": 0.5799971222877502
+    },
+    {
+      "seed": 1812787416,
+      "test_accuracy": 0.7866666913032532,
+      "test_loss": 0.719240128993988
+    },
+    {
+      "seed": 3496855107,
+      "test_accuracy": 0.8066666722297668,
+      "test_loss": 0.7554980516433716
+    },
+    {
+      "seed": 3092999295,
+      "test_accuracy": 0.8333333134651184,
+      "test_loss": 0.5419687628746033
+    },
+    {
+      "seed": 166934300,
+      "test_accuracy": 0.7799999713897705,
+      "test_loss": 0.7040956616401672
+    },
+    {
+      "seed": 2014917443,
+      "test_accuracy": 0.8799999952316284,
+      "test_loss": 0.5946430563926697
+    }
+  ],
+  "confusion_matrix": "C:\\Users\\tantr\\Downloads\\FYP-main\\FYP-main\\music_genre_audio_cnn\\final_fusion_result\\average_confusion_matrix.png",
+  "training_curve": "C:\\Users\\tantr\\Downloads\\FYP-main\\FYP-main\\music_genre_audio_cnn\\final_fusion_result\\average_training_curve.png"
 }

@@ -1,4 +1,4 @@
-"""Reusable data, evaluation, and reporting helpers for audio CNN experiments."""
+"""Reusable data, evaluation, and reporting helpers for audio classification and Training4 experiments."""
 
 from __future__ import annotations
 
@@ -25,6 +25,14 @@ GTZAN_GENRES = [
     "blues", "classical", "country", "disco", "hiphop",
     "jazz", "metal", "pop", "reggae", "rock",
 ]
+
+
+def extract_track_id(filename: str) -> str:
+    """Extract parent track ID from 3-sec excerpt filename (e.g. 'blues.00000.0.wav' -> 'blues.00000')."""
+    parts = str(filename).split(".")
+    if len(parts) >= 3:
+        return f"{parts[0]}.{parts[1]}"
+    return str(filename)
 
 
 def set_seed(seed: int = SEED) -> None:
@@ -70,14 +78,14 @@ def collect_labeled_audio(
 
 
 def split_tracks(
-    paths: list[str], labels: list[int], test_size: float = 0.15, validation_size: float = 0.15
+    paths: list[str], labels: list[int], test_size: float = 0.15, validation_size: float = 0.15, seed: int = SEED
 ) -> tuple[list[str], list[str], list[str], list[int], list[int], list[int]]:
     train_paths, test_paths, train_labels, test_labels = train_test_split(
-        paths, labels, test_size=test_size, random_state=SEED, stratify=labels
+        paths, labels, test_size=test_size, random_state=seed, stratify=labels
     )
     validation_fraction = validation_size / (1.0 - test_size)
     train_paths, validation_paths, train_labels, validation_labels = train_test_split(
-        train_paths, train_labels, test_size=validation_fraction, random_state=SEED, stratify=train_labels
+        train_paths, train_labels, test_size=validation_fraction, random_state=seed, stratify=train_labels
     )
     return train_paths, validation_paths, test_paths, train_labels, validation_labels, test_labels
 
